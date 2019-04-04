@@ -1,0 +1,8 @@
+insert into client_group values(0, '<Default Group>');
+
+insert into product_type values(0, '<Default Type');
+
+insert into txn_type values('INV', 'Invoice', -1);
+insert into txn_type values('PO', 'Purchase Order', 1);
+insert into txn_type values('PUR', 'Purchases', 1);
+insert into txn_type values('ADJ', 'Adjustments', 0);

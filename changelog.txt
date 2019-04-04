@@ -1,0 +1,5 @@
+Meljay - 0.9.5.14 (Released 2014-08-26)
+=======================================
+- 0000007: [Feature] Prefix report names with sequence numbers
+- 0000006: [Feature] Production by Municpality (Updated Production Reports), provide choice for Provinces
+- 0000005: [Change] Production by Municipality (Production Reports), change format to 'long'

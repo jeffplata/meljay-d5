@@ -1,0 +1,2 @@
+2015-11-08 01:07:24 cat: Transaction, proto: firebirdd-2.1, msg: COMMIT TRANSACTION "C:\dprojects\meljay\Data\MELJAY.ERP"
+2015-11-08 01:07:24 cat: Connect, proto: firebirdd-2.1, msg: DISCONNECT FROM "C:\dprojects\meljay\Data\MELJAY.ERP"

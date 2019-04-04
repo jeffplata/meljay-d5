@@ -1,0 +1,7 @@
+
+3:25 PM 8/10/2014
+- Extract database metadata using IBExpert, not FlameRobin,
+  then compare DB using database comparer
+
+3:51 AM 11/16/2012
+Customers (with Groups) operational

@@ -1,0 +1,889 @@
+select 
+             PROVINCE
+           , TOWN
+           , QTY
+           , inv.INVAMOUNT
+           , inv.DOWNPAYMENT
+           , inv.BALANCE
+      from ( select 
+                i.TXN_PERIOD
+              , i.TOWN_ID
+              , totals.INVAMOUNT
+              , totals.DOWNPAYMENT
+              , totals.BALANCE
+              , ( select SUM(b.QTYOUT) from TXN_DETAIL b
+                  join TXN a on a.TXN_ID = b.TXN_ID 
+                  where a.TXN_PERIOD = i.TXN_PERIOD
+                  and a.TOWN_ID = i.TOWN_ID
+                  and b.PRODUCT_ID = 300096
+                ) QTY
+              , ( select TOWN from TOWN t
+                  where t.TOWN_ID = i.TOWN_ID
+                ) TOWN
+              , ( select PROVINCE from TOWN t
+                  where t.TOWN_ID = i.TOWN_ID
+                ) PROVINCE
+            from TXN i 
+            join ( select 
+                    TXN_PERIOD
+                  , TOWN_ID
+                  , max(i.TXN_ID) TXN_ID
+                  , sum(i.TXN_AMOUNT) INVAMOUNT
+                  , sum(i.TXN_DOWNPAYMENT) DOWNPAYMENT
+                  , sum(i.TXN_AMOUNT - i.TXN_DOWNPAYMENT) BALANCE
+                 from TXN i
+                 group by 1,2 
+               ) totals on totals.txn_id = i.TXN_ID
+        ) inv       
+      where inv.TXN_PERIOD = '2014-1-024'
+      order by PROVINCE, TOWN
+
+
+
+SET TERM ^ ;
+ALTER PROCEDURE SP_TXN_PRODUCTION_SUMMARY (
+    APERIOD varchar(10),
+    PRODUCT_ID integer )
+RETURNS (
+    AGENT_ID integer,
+    SALES_REP_NAME varchar(40),
+    PROVINCE varchar(40),
+    TOWN varchar(40),
+    QTY integer,
+    INVAMT numeric(15,2),
+    DOWNPMT numeric(15,2),
+    BALANCE numeric(15,2),
+    PERIOD varchar(10) )
+AS
+BEGIN
+  FOR select AGENT_ID 
+           , SALES_REP_NAME
+           , PROVINCE
+           , TOWN
+           , QTY
+           , TXN_AMOUNT
+           , TXN_DOWNPAYMENT
+           , TXNBALANCE
+           , TXN_PERIOD
+      from 
+        ( select
+              i.AGENT_ID
+              , i.TOWN_ID
+              , i.TXN_AMOUNT
+              , i.TXN_DOWNPAYMENT
+              , i.TXN_AMOUNT - i.TXN_DOWNPAYMENT TXNBALANCE
+              , ( select CLIENT_NAME from CLIENT c
+                  where c.CLIENT_ID =  i.AGENT_ID
+                ) SALES_REP_NAME
+              , ( select SUM(QTYOUT) from TXN_DETAIL d
+                  where d.TXN_ID = i.TXN_ID
+                  and d.PRODUCT_ID = :PRODUCT_ID
+                ) QTY
+              , i.TXN_PERIOD
+          from TXN i 
+        ) inv
+            
+      join ( select t.TOWN_ID, TOWN, PROVINCE from TOWN t
+             union
+             select distinct TOWN_ID, '', '' from TXN
+             where not exists (select t.town_id from TOWN t
+               where t.town_id = txn.town_id)
+           ) t on t.town_id = inv.town_id
+               
+      where inv.TXN_PERIOD = :APERIOD
+      order by t.PROVINCE, t.TOWN
+    into 
+       :AGENT_ID ,
+       :SALES_REP_NAME ,
+       :PROVINCE ,
+       :TOWN ,
+       :QTY ,
+       :INVAMT ,
+       :DOWNPMT ,
+       :BALANCE ,
+       :PERIOD
+    do 
+    begin
+       suspend;
+    end
+END^
+SET TERM ; ^
+
+
+GRANT EXECUTE
+ ON PROCEDURE SP_TXN_PRODUCTION_SUMMARY TO  SYSDBA;
+
+select 
+             PROVINCE
+           , TOWN
+           , QTY
+           , inv.INVAMOUNT
+           , inv.DOWNPAYMENT
+           , inv.BALANCE
+      from ( select 
+                i.TXN_PERIOD
+              , i.TOWN_ID
+              , totals.INVAMOUNT
+              , totals.DOWNPAYMENT
+              , totals.BALANCE
+              , ( select SUM(b.QTYOUT) from TXN_DETAIL b
+                  join TXN a on a.TXN_ID = b.TXN_ID 
+                  where a.TXN_PERIOD = i.TXN_PERIOD
+                  and a.TOWN_ID = i.TOWN_ID
+                  and b.PRODUCT_ID = 300096
+                ) QTY
+              , ( select TOWN from TOWN t
+                  where t.TOWN_ID = i.TOWN_ID
+                ) TOWN
+              , ( select PROVINCE from TOWN t
+                  where t.TOWN_ID = i.TOWN_ID
+                ) PROVINCE
+            from TXN i 
+            join ( select 
+                    TXN_PERIOD
+                  , TOWN_ID
+                  , max(i.TXN_ID) TXN_ID
+                  , sum(i.TXN_AMOUNT) INVAMOUNT
+                  , sum(i.TXN_DOWNPAYMENT) DOWNPAYMENT
+                  , sum(i.TXN_AMOUNT - i.TXN_DOWNPAYMENT) BALANCE
+                 from TXN i
+                 group by 1,2 
+               ) totals on totals.txn_id = i.TXN_ID
+        ) inv       
+      where inv.TXN_PERIOD = '2014-1-024'
+      order by PROVINCE, TOWN
+
+
+
+SET TERM ^ ;
+ALTER PROCEDURE SP_TXN_PRODUCTION_SUMMARY (
+    APERIOD varchar(10),
+    PRODUCT_ID integer )
+RETURNS (
+    AGENT_ID integer,
+    SALES_REP_NAME varchar(40),
+    PROVINCE varchar(40),
+    TOWN varchar(40),
+    QTY integer,
+    INVAMT numeric(15,2),
+    DOWNPMT numeric(15,2),
+    BALANCE numeric(15,2),
+    PERIOD varchar(10) )
+AS
+BEGIN
+  FOR select AGENT_ID 
+           , SALES_REP_NAME
+           , PROVINCE
+           , TOWN
+           , QTY
+           , TXN_AMOUNT
+           , TXN_DOWNPAYMENT
+           , TXNBALANCE
+           , TXN_PERIOD
+      from 
+        ( select
+              i.AGENT_ID
+              , i.TOWN_ID
+              , i.TXN_AMOUNT
+              , i.TXN_DOWNPAYMENT
+              , i.TXN_AMOUNT - i.TXN_DOWNPAYMENT TXNBALANCE
+              , ( select CLIENT_NAME from CLIENT c
+                  where c.CLIENT_ID =  i.AGENT_ID
+                ) SALES_REP_NAME
+              , ( select SUM(QTYOUT) from TXN_DETAIL d
+                  where d.TXN_ID = i.TXN_ID
+                  and d.PRODUCT_ID = :PRODUCT_ID
+                ) QTY
+              , i.TXN_PERIOD
+          from TXN i 
+        ) inv
+            
+      join ( select t.TOWN_ID, TOWN, PROVINCE from TOWN t
+             union
+             select distinct TOWN_ID, '', '' from TXN
+             where not exists (select t.town_id from TOWN t
+               where t.town_id = txn.town_id)
+           ) t on t.town_id = inv.town_id
+               
+      where inv.TXN_PERIOD = :APERIOD
+      order by t.PROVINCE, t.TOWN
+    into 
+       :AGENT_ID ,
+       :SALES_REP_NAME ,
+       :PROVINCE ,
+       :TOWN ,
+       :QTY ,
+       :INVAMT ,
+       :DOWNPMT ,
+       :BALANCE ,
+       :PERIOD
+    do 
+    begin
+       suspend;
+    end
+END^
+SET TERM ; ^
+
+
+GRANT EXECUTE
+ ON PROCEDURE SP_TXN_PRODUCTION_SUMMARY TO  SYSDBA;
+
+===========================
+
+
+11760 invoices
+
+SET TERM ^ ;
+ALTER PROCEDURE SP_TXN_PRODUCTION_SUMMARY (
+    PERIOD varchar(10),
+    PRODUCT_ID integer )
+RETURNS (
+    AGENT_ID integer,
+    SALES_REP_NAME varchar(40),
+    PROVINCE varchar(40),
+    TOWN varchar(40),
+    QTY integer,
+    INVAMT numeric(15,2),
+    DOWNPMT numeric(15,2),
+    BALANCE numeric(15,2) )
+AS
+BEGIN
+    for select 
+        sqt.agent_id,
+        sr.CLIENT_NAME,
+        t.PROVINCE, 
+        t.TOWN,
+        sqt.tqty,
+        INV.TINVAMT,
+        INV.TDOWNPMT,
+        (INV.TINVAMT-INV.TDOWNPMT) balance
+    from (select AGENT_ID, txn.TOWN_ID, 
+                 sum((SELECT QTYOUT FROM TXN_DETAIL b
+                      WHERE b.TXN_ID = i.TXN_ID
+                      AND b.PRODUCT_ID = :product_id)) TQTY,
+                 sum(TXN_AMOUNT) tinvamt,
+                 sum(TXN_DOWNPAYMENT) tdownpmt
+            from TXN i
+            join TOWN on town.TOWN_ID=i.TOWN_ID
+           where TXN_PERIOD = :PERIOD
+           group by AGENT_ID, i.TOWN_ID
+         ) inv on (inv.AGENT_ID=sqt.AGENT_ID)
+              and (inv.TOWN_ID=sqt.TOWN_ID)
+    order by t.PROVINCE, t.TOWN
+    into 
+       :AGENT_ID ,
+       :SALES_REP_NAME ,
+       :PROVINCE ,
+       :TOWN ,
+       :QTY ,
+       :INVAMT ,
+       :DOWNPMT ,
+       :BALANCE 
+    do 
+    begin
+       suspend;
+    end
+END^
+SET TERM ; ^
+
+
+GRANT EXECUTE
+ ON PROCEDURE SP_TXN_PRODUCTION_SUMMARY TO  SYSDBA;
+
+
+===============================
+select b.COLLECTOR_ID, b.COL_DATE, 
+  sum(case when c.TXN_PERIOD<'2014-1' then a.COL_DETAIL_AMTPAID else 0 end) OLD,
+  sum(case when c.TXN_PERIOD>='2014-1' then a.COL_DETAIL_AMTPAID else 0 end) NEW
+from COLLECTION_DETAIL a
+join COLLECTION b on b.COL_ID=a.COL_ID
+join TXN c on c.TXN_NUMBER = a.TXN_NUMBER
+group by 1,2
+
+
+
+  if dmInvoice.cdsInv.UpdateStatus in [usModified, usInserted, usDeleted] then begin
+    if not (csEmpty in CellState) then
+      FontStyle := FontStyle + [fsBold];
+  end
+  
+  
+  
+select  
+  TXN_NUMBER
+, TXN_DATE
+, TXN_AMOUNT
+, TXN_AMOUNTPAID+TXN_DOWNPAYMENT AS TXN_AMOUNTPAID
+, CLIENT_ID
+, TXN_TYPE_CID
+, AGENT_ID
+from TXN
+where
+  txn_type_cid = 'INV' and
+  (((txn_amount - txn_amountpaid - txn_downpayment) > 0) 
+     and (txn_amount <> 0))
+order by
+  txn_date, txn_number
+  
+  
+  
+
+
+select 
+CLIENT_ID, 
+CLIENT_NAME,
+ADDRESS,
+C.TOWN_ID,
+PHONE,
+AGENT_ID,
+CLIENT_TYPE,
+(select town_province from town t
+  where t.town_id = c.town_id) TOWNPROVINCE
+from CLIENT C
+where CLIENT_TYPE='SR'
+ORDER BY CLIENT_NAME
+
+
+
+
+SELECT C.CLIENT_ID
+     , C.CLIENT_NAME
+     , C.STREET_ADDRESS
+     , C.ADDRESS
+     , C.TOWN_ID
+     , C.PHONE
+     , C.AGENT_ID
+     , C.CLIENT_TYPE
+
+
+
+FROM CLIENT C
+ORDER BY C.CLIENT_NAME
+
+
+//collection master events
+cdsCol_EditBeforePost
+cdsColCalcFields
+cdsCol_EditNewRecord
+
+
+//----------
+collection detail events:
+
+procedure TdmInvoice.cdsCol2_EditAfterDelete(DataSet: TDataSet);
+var
+  newCollectionAmount: Double;
+  
+begin
+  if not (cdsCol2_Edit.Bof and cdsCol2_Edit.Eof) then
+    newCollectionAmount := cdsCol2_Edit.fieldbyname('SumAmtPaid').Value else
+    newCollectionAmount := 0;
+  cdsCol_Edit.FieldByName('COL_AMOUNTAPPLIED').AsCurrency := newCollectionAmount;
+end;
+
+
+----------------
+procedure TdmInvoice.cdsCol2_EditAfterPost(DataSet: TDataSet);
+
+begin
+  cdsCol_Edit.FieldByName('COL_AMOUNTAPPLIED').AsCurrency :=
+    cdsCol2_Edit.fieldbyname('SumAmtPaid').Value;
+end;
+
+-----------------
+procedure TdmInvoice.cdsCol2_EditNewRecord(DataSet: TDataSet);
+begin
+  Dec(CollectionDetailID);
+  DataSet.FieldByName('col_detail_id').AsInteger := CollectionDetailID;
+end;
+
+---------------------
+procedure TdmInvoice.cdsCol2_EditPostError(DataSet: TDataSet;
+  E: EDatabaseError; var Action: TDataAction);
+var
+  _message : string;
+begin
+  if Pos('KEY VIOLATION', Uppercase(e.Message)) > 0 then
+    _message := 'Duplicate. Each invoice can only be used once.'
+  else
+    _message := e.Message;
+  MessageDlg(_message, mtWarning, [mbOK], 0);
+  Action := daAbort;
+end;
+
+
+
+
+
+
+
+//-------
+detail where clause:
+    where exists( 
+      select 1 from request_md b 
+      where b.MASTER_ID = a.REQUEST_ID
+        and b.CLIENT_ADDRESS = rdb$get_context('SYSTEM','CLIENT_ADDRESS'))
+
+
+//-----------
+collection parameters:
+start_date   col_date
+end_date     col_date
+client_id    client_id
+col_type     col_type
+col_number   col_number
+
+
+//---------------
+    where (:START_DATE is null
+       or a.DOC_DATE between :START_DATE and :END_DATE )
+      and
+      (:DOC_NUMBER_P is null
+       or a.DOC_NUMBER containing :DOC_NUMBER_P
+       or a.SUMMARY containing :DOC_NUMBER_P
+       or a.PURPOSE containing :DOC_NUMBER_P
+       or a.REQUESTEDBY containing :DOC_NUMBER_P 
+       or exists (select 1 from REQUEST_LINE 
+                   where REQUEST_ID = a.ID
+                     and DESCRIPTION containing :DOC_NUMBER_P )
+      ) and
+      (:A_STATUS is null 
+       or a.STATUS = :A_STATUS 
+       
+//---------------
+AT THE start of the sel_procedure
+    client_address = rdb$get_context('SYSTEM','CLIENT_ADDRESS');
+    delete from REQUEST_MD 
+     where client_address = :client_address;       
+       
+//---------------
+CREATE GLOBAL TEMPORARY TABLE REQUEST_MD
+(
+  ID integer NOT NULL,
+  MASTER_ID integer NOT NULL,
+  CLIENT_ADDRESS varchar(15) NOT NULL
+)
+ON COMMIT PRESERVE ROWS;       
+
+// open tables in threads
+unit Unit1;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, 
+  Dialogs, DBTables, Db;
+
+const
+  WM_OPENDATASET = WM_USER + 1;
+  WM_EXECUTESQL  = WM_USER + 2;
+
+type
+  TThreadDataSet = class(TThread)
+  private
+    procedure WMOpenDataSet(Msg: TMsg);
+    procedure WMExecSQL(Msg: TMsg);
+  protected
+    procedure Execute; override;
+  public
+    procedure Open(DataSet: TDataSet);
+    procedure ExecSQL(DataSet: TDataSet);
+  end;
+
+  TForm1 = class(TForm)
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+  private
+    { Private declarations }
+FThread : TThreadDataSet;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.DFM}
+
+procedure TThreadDataSet.ExecSQL(DataSet: TDataSet);
+begin
+  PostThreadMessage(ThreadID, WM_EXECUTESQL, Integer(DataSet), 0);
+end;
+
+procedure TThreadDataSet.Execute;
+var
+  Msg : TMsg;
+
+begin
+  FreeOnTerminate := True;
+  PeekMessage(Msg, 0, WM_USER, WM_USER, PM_NOREMOVE);
+
+  while not Terminated do begin
+    if GetMessage(Msg, 0, 0, 0) then
+       case Msg.Message of
+         WM_OPENDATASET: WMOpenDataSet(Msg);
+         WM_EXECUTESQL:  WMExecSQL(Msg);
+       end;
+  end;
+end;
+
+procedure TThreadDataSet.Open(DataSet: TDataSet);
+begin
+  PostThreadMessage(ThreadID, WM_OPENDATASET, Integer(DataSet), 0);
+end;
+
+procedure TThreadDataSet.WMExecSQL(Msg: TMsg);
+var
+  Qry : TQuery;
+
+begin
+  try
+    Qry := TQuery(Msg.wParam);
+    try
+      Qry.Open;
+    except
+      Qry.ExecSQL;
+    end;
+  except
+    On E: Exception do
+       ShowMessage(E.Message);
+  end;
+end;
+
+procedure TThreadDataSet.WMOpenDataSet(Msg: TMsg);
+var
+  Ds : TDataSet;
+
+begin
+  try
+    Ds := TDataSet(Msg.wParam);
+    Ds.Open;
+  except
+    On E: Exception do
+       ShowMessage(E.Message);
+  end;
+end;
+
+// --------------------------------------- //
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  FThread  := TThreadDataSet.Create(False);
+  FThread.Open(Table1);   // Opening a dataset (table or query)
+  FThread.ExecSQL(Query1);  // Executing a SQL
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  FThread.Terminate;
+end;
+
+end.
+
+
+
+
+-----------------------------------
+
+Sorting TClientDataSet
+Started by RobertjanTuit, Aug 08 2005 04:30 PM
+
+Posted 08 August 2005 - 04:30 PM
+For anyone also interested.
+Use the following code to Index/Sort Real-time with a tClientDataSet :
+CODE
+procedure TForm1.NextDBGrid1SortColumn(Sender: TObject;
+ ACol: Integer; Ascending: Boolean);
+begin
+ NDBGSortColumnCDS((Sender as TNextDBGrid),aCol);
+end;
+
+procedure TForm1.NDBGCreateIndexes(oDBG: TNextDBGrid);
+var
+ oColumn : TNxDBCustomColumn;
+ oCDS : tClientDataSet;
+ I : Integer;
+begin
+ if NOT (csLoading in Self.ComponentState) then
+ begin
+   if (assigned(oDBG.DataLink))
+      and (assigned(oDBG.DataLink.DataSet))
+      and (oDBG.DataLink.DataSet.Active)
+      and (oDBG.DataLink.DataSet.ClassType = TClientDataSet)
+      and ((oDBG.DataLink.DataSet as TClientDataSet).IndexFieldCount < oDBG.Columns.Count) Then
+   begin
+     oCDS := (oDBG.DataLink.DataSet as TClientDataSet);
+     for I := 0 to oDBG.Columns.Count-1 do
+     begin
+       oColumn := oDBG.columns.Item[I];
+       if (oColumn.FieldName <> '') and (coCanSort in oColumn.Options) then
+       begin
+          if (oCDS.IndexDefs.IndexOf(oColumn.FieldName) = -1) then
+          begin
+            oCDS.AddIndex(oColumn.FieldName+' ASC',oColumn.FieldName,[ixCaseInsensitive]);
+            oCDS.AddIndex(oColumn.FieldName+' DESC',oColumn.FieldName,[ixCaseInsensitive,ixDescending]);
+          end;
+       end;
+     end;
+   end
+ end;
+end;
+
+
+procedure TForm1.NDBGSortColumnCDS(oDBG : TNextDBGrid;iCol : Integer);
+var
+ oColumn : TNxDBCustomColumn;
+ oCDS : tClientDataSet;
+begin
+ if NOT (csLoading in Self.ComponentState) then
+ begin
+   if (assigned(oDBG.DataLink))
+      and (assigned(oDBG.DataLink.DataSet))
+      and (oDBG.DataLink.DataSet.Active)
+      and (oDBG.DataLink.DataSet.ClassType = TClientDataSet) Then
+   begin
+     NDBGCreateIndexes(oDBG);
+     oColumn := oDBG.columns.Item[iCol];
+     if (oColumn.FieldName <> '') and (coCanSort in oColumn.Options) then
+     begin
+         oCDS := (oDBG.DataLink.DataSet as TClientDataSet);
+         if oCDS.IndexName <> oColumn.FieldName+' ASC' then
+           oCDS.IndexName := oColumn.FieldName+' ASC'
+         else
+           oCDS.IndexName := oColumn.FieldName+' DESC';
+     end;
+   end;
+ end;
+end;
+
+
+----------------------------
+Hi! I've wrote SaveToExcel procedure.
+
+CODE
+procedure TMForm.SaveToExcel(RGrid: TNxGrid);
+var
+  XLApp: Variant;
+  i, n: integer;
+begin
+  XLApp:= CreateOleObject('Excel.Application');
+  XLApp.DisplayAlerts := false;
+  XLApp.Workbooks.Add;
+  XLApp.Visible:=true;
+  XLApp.Workbooks[1].WorkSheets[1].Name:='NXGrid Export';
+  XLApp.WorkBooks[1].WorkSheets[1].Rows[1].Font.Bold := true;
+  for i:=0 to RGrid.Columns.Count-1 do
+    XLApp.WorkBooks[1].WorkSheets[1].Cells[1,i+1] := RGrid.Columns[i].Header.Caption;
+  for i:=0 to RGrid.RowCount-1 do
+    for n:=0 to RGrid.Columns.Count-1 do
+      XLApp.WorkBooks[1].WorkSheets[1].Cells[i+2,n+1] := RGrid.Cell[n,i].AsString;
+end;
+
+==========================
+
+
+...export a TDBGrid to excel without OLE?
+Author: Carlo Pasolini, Riccione(Italy)
+
+Category: Database
+
+{
+  Exporting a DBGrid to excel without OLE
+
+  I develop software and about 95% of my work deals with databases.
+  I enjoied the advantages of using Microsoft Excel in my projects
+  in order to make reports but recently I decided to convert myself
+  to the free OpenOffice suite.
+  I faced with the problem of exporting data to Excel without having
+  Office installed on my computer.
+  The first solution was to create directly an Excel format compatible file:
+  this solution is about 50 times faster than the OLE solution but there
+  is a problem: the output file is not compatible with OpenOffice.
+  I wanted a solution which was compatible with each "DataSet";
+  at the same time I wanted to export only the dataset data present in
+  a DBGrid and not all the "DataSet".
+  Finally I obtained this solution which satisfied my requirements.
+  I hope that it will be usefull for you too.
+
+  First of all you must import the ADOX type library
+  which will be used to create the Excel file and its
+  internal structure: in the Delphi IDE:
+
+  1)Project->Import Type Library:
+  2)Select "Microsoft ADO Ext. for DDL and Security"
+  3)Uncheck "Generate component wrapper" at the bottom
+  4)Rename the class names (TTable, TColumn, TIndex, TKey, TGroup, TUser, TCatalog) in
+    (TXTable, TXColumn, TXIndex, TXKey, TXGroup, TXUser, TXCatalog)
+    in order to avoid conflicts with the already present TTable component.
+  5)Select the Unit dir name and press "Create Unit".
+    It will be created a file named AOX_TLB.
+    Include ADOX_TLB in the "uses" directive inside the file in which you want
+    to use ADOX functionality.
+
+  That is all. Let's go now with the implementation:
+}
+
+unit DBGridExportToExcel;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  ExtCtrls, StdCtrls, ComCtrls, DB, IniFiles, Buttons, dbgrids, ADOX_TLB, ADODB;
+
+
+type TScrollEvents = class
+       BeforeScroll_Event: TDataSetNotifyEvent;
+       AfterScroll_Event: TDataSetNotifyEvent;
+       AutoCalcFields_Property: Boolean;
+  end;
+
+procedure DisableDependencies(DataSet: TDataSet; var ScrollEvents: TScrollEvents);
+procedure EnableDependencies(DataSet: TDataSet; ScrollEvents: TScrollEvents);
+procedure DBGridToExcelADO(DBGrid: TDBGrid; FileName: string; SheetName: string);
+
+
+implementation
+
+//Support procedures: I made that in order to increase speed in
+//the process of scanning large amounts
+//of records in a dataset
+
+//we make a call to the "DisableControls" procedure and then disable the "BeforeScroll" and
+//"AfterScroll" events and the "AutoCalcFields" property.
+procedure DisableDependencies(DataSet: TDataSet; var ScrollEvents: TScrollEvents);
+begin
+     with DataSet do
+          begin
+               DisableControls;
+               ScrollEvents := TScrollEvents.Create();
+               with ScrollEvents do
+                    begin
+                         BeforeScroll_Event := BeforeScroll;
+                         AfterScroll_Event := AfterScroll;
+                         AutoCalcFields_Property := AutoCalcFields;
+                         BeforeScroll := nil;
+                         AfterScroll := nil;
+                         AutoCalcFields := False;
+                    end;
+          end;
+end;
+
+//we make a call to the "EnableControls" procedure and then restore
+// the "BeforeScroll" and "AfterScroll" events and the "AutoCalcFields" property.
+procedure EnableDependencies(DataSet: TDataSet; ScrollEvents: TScrollEvents);
+begin
+     with DataSet do
+          begin
+               EnableControls;
+               with ScrollEvents do
+                    begin
+                         BeforeScroll := BeforeScroll_Event;
+                         AfterScroll := AfterScroll_Event;
+                         AutoCalcFields := AutoCalcFields_Property;
+                    end;
+          end;
+end;
+
+//This is the procedure which make the work:
+
+procedure DBGridToExcelADO(DBGrid: TDBGrid; FileName: string; SheetName: string);
+var
+  cat: _Catalog;
+  tbl: _Table;
+  col: _Column;
+  i: integer;
+  ADOConnection: TADOConnection;
+  ADOQuery: TADOQuery;
+  ScrollEvents: TScrollEvents;
+  SavePlace: TBookmark;
+begin
+  //
+  //WorkBook creation (database)
+  cat := CoCatalog.Create;
+  cat._Set_ActiveConnection('Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + FileName + ';Extended Properties=Excel 8.0');
+  //WorkSheet creation (table)
+  tbl := CoTable.Create;
+  tbl.Set_Name(SheetName);
+  //Columns creation (fields)
+  DBGrid.DataSource.DataSet.First;
+  with DBGrid.Columns do
+    begin
+      for i := 0 to Count - 1 do
+        if Items[i].Visible then
+        begin
+          col := nil;
+          col := CoColumn.Create;
+          with col do
+            begin
+              Set_Name(Items[i].Title.Caption);
+              Set_Type_(adVarWChar);
+            end;
+          //add column to table
+          tbl.Columns.Append(col, adVarWChar, 20);
+        end;
+    end;
+  //add table to database
+  cat.Tables.Append(tbl);
+
+  col := nil;
+  tbl := nil;
+  cat := nil;
+
+  //exporting
+  ADOConnection := TADOConnection.Create(nil);
+  ADOConnection.LoginPrompt := False;
+  ADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + FileName + ';Extended Properties=Excel 8.0';
+  ADOQuery := TADOQuery.Create(nil);
+  ADOQuery.Connection := ADOConnection;
+  ADOQuery.SQL.Text := 'Select * from [' + SheetName + '$]';
+  ADOQuery.Open;
+
+
+  DisableDependencies(DBGrid.DataSource.DataSet, ScrollEvents);
+  SavePlace := DBGrid.DataSource.DataSet.GetBookmark;
+  try
+  with DBGrid.DataSource.DataSet do
+    begin
+      First;
+      while not Eof do
+        begin
+          ADOQuery.Append;
+          with DBGrid.Columns do
+            begin
+              ADOQuery.Edit;
+              for i := 0 to Count - 1 do
+                if Items[i].Visible then
+                  begin
+                    ADOQuery.FieldByName(Items[i].Title.Caption).AsString := FieldByName(Items[i].FieldName).AsString;
+                  end;
+              ADOQuery.Post;
+            end;
+          Next;
+        end;
+    end;
+
+  finally
+  DBGrid.DataSource.DataSet.GotoBookmark(SavePlace);
+  DBGrid.DataSource.DataSet.FreeBookmark(SavePlace);
+  EnableDependencies(DBGrid.DataSource.DataSet, ScrollEvents);
+
+  ADOQuery.Close;
+  ADOConnection.Close;
+
+  ADOQuery.Free;
+  ADOConnection.Free;
+
+  end;
+
+end;
+
+end.
+
+ 
+
+printed from
+www.swissdelphicenter.ch
+developers knowledge base

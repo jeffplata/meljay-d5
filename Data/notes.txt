@@ -1,0 +1,7 @@
+MAIN.FDB - Default database; make optional upon installation; default unselected
+MAIN.FBK - FB backup of MAIN.FDB; update as necessary
+Other files - Production database; do not modify
+
+Recreating DB;
+1 - Update MAIN.FDB as necessary;
+2 - Run main_db_defaul_data.txt sql to initalize data
